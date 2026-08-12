@@ -25,8 +25,8 @@ class CodexAiCenter < Formula
   end
 
   resource "cryptography" do
-    url "https://files.pythonhosted.org/packages/a7/35/c495bffc2056f2dadb32434f1feedd79abde2a7f8363e1974afa9c33c7e2/cryptography-45.0.7.tar.gz"
-    sha256 "4b1654dfc64ea479c242508eb8c724044f1e964a47d1d1cacc5132292d851971"
+    url "https://files.pythonhosted.org/packages/0c/91/925c0ac74362172ae4516000fe877912e33b5983df735ff290c653de4913/cryptography-45.0.7-cp311-abi3-macosx_10_9_universal2.whl"
+    sha256 "3be4f21c6245930688bd9e162829480de027f8bf962ede33d4f8ba7d67a00cee"
   end
 
   resource "h11" do
@@ -56,7 +56,7 @@ class CodexAiCenter < Formula
 
   def install
     venv = virtualenv_create(libexec, "python3.14")
-    venv.pip_install resources
+    venv.pip_install resources.map(&:cached_download)
     venv.pip_install cached_download
     bin.install_symlink libexec/"bin/codex-ai-center"
     bin.install_symlink libexec/"bin/ai-center-token"
