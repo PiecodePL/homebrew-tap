@@ -60,7 +60,9 @@ class CodexAiCenter < Formula
     cp resource("cryptography").cached_download, cryptography_wheel
     dependency_archives = resources.reject { |resource| resource.name == "cryptography" }.map(&:cached_download)
     venv.pip_install dependency_archives + [cryptography_wheel]
-    venv.pip_install cached_download
+    client_wheel = buildpath/"codex_ai_center_client-0.1.0-py3-none-any.whl"
+    cp cached_download, client_wheel
+    venv.pip_install client_wheel
     bin.install_symlink libexec/"bin/codex-ai-center"
     bin.install_symlink libexec/"bin/ai-center-token"
     bin.install_symlink libexec/"bin/ai-center-codex-hook"
