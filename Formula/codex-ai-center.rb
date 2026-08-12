@@ -56,7 +56,10 @@ class CodexAiCenter < Formula
 
   def install
     venv = virtualenv_create(libexec, "python3.14")
-    venv.pip_install resources.map(&:cached_download)
+    cryptography_wheel = buildpath/"cryptography-45.0.7-cp311-abi3-macosx_10_9_universal2.whl"
+    cp resource("cryptography").cached_download, cryptography_wheel
+    dependency_archives = resources.reject { |resource| resource.name == "cryptography" }.map(&:cached_download)
+    venv.pip_install dependency_archives + [cryptography_wheel]
     venv.pip_install cached_download
     bin.install_symlink libexec/"bin/codex-ai-center"
     bin.install_symlink libexec/"bin/ai-center-token"
