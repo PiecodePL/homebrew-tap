@@ -5,10 +5,21 @@ class CodexAiCenter < Formula
   homepage "https://chat.piecode.pl/console/codex-onboarding"
   url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.2/codex_ai_center_client-0.1.2-py3-none-any.whl"
   version "0.1.2"
-  sha256 "27f4882c8c59eb227ce748147c23fdd720724cf9923aa9bb1a14f364516f911e"
+  sha256 "58f7280a0108823f9ed332f42966dc066c07a32cf74822a990ccb2230051fc80"
 
-  depends_on cask: "codex"
   depends_on "python@3.14"
+
+  resource "stock-codex" do
+    on_arm do
+      url "https://github.com/openai/codex/releases/download/rust-v0.147.0/codex-package-aarch64-apple-darwin.tar.gz"
+      sha256 "17b2984eb22b607e3d0c25728252fc90f510e476bad39a6d9f45cdb1aa685432"
+    end
+
+    on_intel do
+      url "https://github.com/openai/codex/releases/download/rust-v0.147.0/codex-package-x86_64-apple-darwin.tar.gz"
+      sha256 "d91e59133daf923bc45d76e3da4af8ae9ef62a0231da18488da0cd573b6e9d63"
+    end
+  end
 
   resource "anyio" do
     url "https://files.pythonhosted.org/packages/61/cc/a381afa6efea9f496eff839d4a6a1aed3bfafc7b3ab4b0d1b243a12573dd/anyio-4.14.2.tar.gz"
@@ -59,7 +70,9 @@ class CodexAiCenter < Formula
     venv = virtualenv_create(libexec, "python3.14")
     cryptography_wheel = buildpath/"cryptography-45.0.7-cp311-abi3-macosx_10_9_universal2.whl"
     cp resource("cryptography").cached_download, cryptography_wheel
-    dependency_archives = resources.reject { |resource| resource.name == "cryptography" }.map(&:cached_download)
+    dependency_archives = resources.reject do |resource|
+      ["cryptography", "stock-codex"].include?(resource.name)
+    end.map(&:cached_download)
     venv.pip_install dependency_archives + [cryptography_wheel]
     client_wheel = buildpath/"codex_ai_center_client-0.1.2-py3-none-any.whl"
     cp cached_download, client_wheel
@@ -67,12 +80,19 @@ class CodexAiCenter < Formula
     bin.install_symlink libexec/"bin/codex-ai-center"
     bin.install_symlink libexec/"bin/ai-center-token"
     bin.install_symlink libexec/"bin/ai-center-codex-hook"
+    unless (HOMEBREW_PREFIX/"bin/codex").exist?
+      resource("stock-codex").stage do
+        (libexec/"stock-codex").install Dir["*"]
+      end
+      bin.install_symlink (libexec/"stock-codex/bin/codex") => "codex-ai-center-stock"
+    end
   end
 
   def caveats
     <<~EOS
-      This formula uses the official stock Codex CLI and does not replace the
-      direct `codex` command or its existing local sessions.
+      This formula uses an existing stock Codex CLI when available. It installs
+      a private pinned fallback only when `codex` is missing. It never replaces
+      the direct `codex` command or its existing local sessions.
 
       Authenticate the managed profile with:
 
@@ -84,6 +104,7 @@ class CodexAiCenter < Formula
 
   test do
     assert_equal "codex-ai-center 0.1.2\n", shell_output("#{bin}/codex-ai-center --version")
-    assert_match(/^codex-cli 0\.147\.0\n$/, shell_output("codex --version"))
+    stock_codex = (HOMEBREW_PREFIX/"bin/codex").exist? ? HOMEBREW_PREFIX/"bin/codex" : bin/"codex-ai-center-stock"
+    assert_match(/^codex-cli 0\.147\.0\n$/, shell_output("#{stock_codex} --version"))
   end
 end
