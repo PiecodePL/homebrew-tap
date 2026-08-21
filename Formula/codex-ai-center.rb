@@ -4,7 +4,6 @@ class CodexAiCenter < Formula
   desc "Managed AI Center profile for the stock Codex CLI"
   homepage "https://chat.piecode.pl/console/codex-onboarding"
   url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.5/codex_ai_center_client-0.1.5-py3-none-any.whl"
-  version "0.1.5"
   sha256 "85943016c02d679857030b150df4981b4d509e635849291de8e3e6416b86ac5e"
 
   depends_on "python@3.14"
