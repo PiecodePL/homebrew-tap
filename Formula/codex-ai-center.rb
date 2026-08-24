@@ -6,6 +6,12 @@ class CodexAiCenter < Formula
   url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.5/codex_ai_center_client-0.1.5-py3-none-any.whl"
   sha256 "85943016c02d679857030b150df4981b4d509e635849291de8e3e6416b86ac5e"
 
+  bottle do
+    root_url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.5"
+    rebuild 1
+    sha256 arm64_sonoma: "b0ec7dd75a35e544d0778c887d4af53ba82309d176e7c73bbcad1ba8618f7efd"
+  end
+
   depends_on "python@3.14"
 
   resource "stock-codex" do
@@ -79,12 +85,10 @@ class CodexAiCenter < Formula
     bin.install_symlink libexec/"bin/codex-ai-center"
     bin.install_symlink libexec/"bin/ai-center-token"
     bin.install_symlink libexec/"bin/ai-center-codex-hook"
-    unless (HOMEBREW_PREFIX/"bin/codex").exist?
-      resource("stock-codex").stage do
-        (libexec/"stock-codex").install Dir["*"]
-      end
-      bin.install_symlink (libexec/"stock-codex/bin/codex") => "codex-ai-center-stock"
+    resource("stock-codex").stage do
+      (libexec/"stock-codex").install Dir["*"]
     end
+    bin.install_symlink (libexec/"stock-codex/bin/codex") => "codex-ai-center-stock"
   end
 
   def caveats
