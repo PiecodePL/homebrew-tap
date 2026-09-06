@@ -3,20 +3,20 @@ class CodexAiCenter < Formula
 
   desc "Managed AI Center profile for the stock Codex CLI"
   homepage "https://chat.piecode.pl/console/codex-onboarding"
-  url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.13/codex_ai_center_client-0.1.13-py3-none-any.whl"
-  sha256 "74a5177d42242a92fbcca2fd15e8021f697b530a11870acd5590b49b4f578f47"
+  url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.15/codex_ai_center_client-0.1.15-py3-none-any.whl"
+  sha256 "9fdef29a2e1ee419dc216309b67aa70c98c163ac09635a0dfc51750e99c0781a"
 
   depends_on "python@3.14"
 
   resource "stock-codex" do
     on_arm do
-      url "https://github.com/openai/codex/releases/download/rust-v0.147.0/codex-package-aarch64-apple-darwin.tar.gz"
-      sha256 "17b2984eb22b607e3d0c25728252fc90f510e476bad39a6d9f45cdb1aa685432"
+      url "https://github.com/openai/codex/releases/download/rust-v0.153.4/codex-package-aarch64-apple-darwin.tar.gz"
+      sha256 "35438da1fbf7a6db7ddb3bcec84448fa6015ba188461472a97d9d1da7d9c4353"
     end
 
     on_intel do
-      url "https://github.com/openai/codex/releases/download/rust-v0.147.0/codex-package-x86_64-apple-darwin.tar.gz"
-      sha256 "d91e59133daf923bc45d76e3da4af8ae9ef62a0231da18488da0cd573b6e9d63"
+      url "https://github.com/openai/codex/releases/download/rust-v0.153.4/codex-package-x86_64-apple-darwin.tar.gz"
+      sha256 "3ee638d7155c856ef31f3f4a85cb2195de1939962d3924c935b24f0514564a3d"
     end
   end
 
@@ -73,7 +73,7 @@ class CodexAiCenter < Formula
       ["cryptography", "stock-codex"].include?(resource.name)
     end.map(&:cached_download)
     venv.pip_install dependency_archives + [cryptography_wheel]
-    client_wheel = buildpath/"codex_ai_center_client-0.1.13-py3-none-any.whl"
+    client_wheel = buildpath/"codex_ai_center_client-0.1.15-py3-none-any.whl"
     cp cached_download, client_wheel
     venv.pip_install client_wheel
     bin.install_symlink libexec/"bin/codex-ai-center"
@@ -87,9 +87,8 @@ class CodexAiCenter < Formula
 
   def caveats
     <<~EOS
-      This formula uses an existing stock Codex CLI when available. It installs
-      a private pinned fallback only when `codex` is missing. It never replaces
-      the direct `codex` command or its existing local sessions.
+      The managed command uses its private, pinned Codex runtime. It never
+      replaces the direct `codex` command or its existing local sessions.
 
       Authenticate the managed profile with:
 
@@ -100,8 +99,7 @@ class CodexAiCenter < Formula
   end
 
   test do
-    assert_equal "codex-ai-center 0.1.13\n", shell_output("#{bin}/codex-ai-center --version")
-    stock_codex = (HOMEBREW_PREFIX/"bin/codex").exist? ? HOMEBREW_PREFIX/"bin/codex" : bin/"codex-ai-center-stock"
-    assert_match(/^codex-cli 0\.(147\.0|148\.0|150\.1)\n$/, shell_output("#{stock_codex} --version"))
+    assert_equal "codex-ai-center 0.1.15\n", shell_output("#{bin}/codex-ai-center --version")
+    assert_equal "codex-cli 0.153.4\n", shell_output("#{bin}/codex-ai-center-stock --version")
   end
 end
