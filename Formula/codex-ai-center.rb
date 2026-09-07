@@ -3,8 +3,8 @@ class CodexAiCenter < Formula
 
   desc "Managed AI Center profile for the stock Codex CLI"
   homepage "https://chat.piecode.pl/console/codex-onboarding"
-  url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.20/codex_ai_center_client-0.1.20-py3-none-any.whl"
-  sha256 "81ebff176cda6fe2620b5f927e1cabd2cc926ab95536a4e22a9fea78d2701c7a"
+  url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.21/codex_ai_center_client-0.1.21-py3-none-any.whl"
+  sha256 "cc0b9938f3aa3bf8c177092249867f24253fb48e9f209fcab1ea78df8e620be8"
 
   depends_on "python@3.14"
 
@@ -73,7 +73,7 @@ class CodexAiCenter < Formula
       ["cryptography", "stock-codex"].include?(resource.name)
     end.map(&:cached_download)
     venv.pip_install dependency_archives + [cryptography_wheel]
-    client_wheel = buildpath/"codex_ai_center_client-0.1.20-py3-none-any.whl"
+    client_wheel = buildpath/"codex_ai_center_client-0.1.21-py3-none-any.whl"
     cp cached_download, client_wheel
     venv.pip_install client_wheel
     bin.install_symlink libexec/"bin/codex-ai-center"
@@ -82,7 +82,8 @@ class CodexAiCenter < Formula
     resource("stock-codex").stage do
       (libexec/"stock-codex").install Dir["*"]
     end
-    bin.install_symlink (libexec/"stock-codex/bin/codex") => "codex-ai-center-stock"
+    (libexec/"bin").install_symlink (libexec/"stock-codex/bin/codex") => "codex-ai-center-stock"
+    bin.install_symlink (libexec/"bin/codex-ai-center-stock")
   end
 
   def caveats
@@ -94,12 +95,21 @@ class CodexAiCenter < Formula
 
         codex-ai-center login
 
-      Direct OpenAI sessions remain available through the existing `codex` command.
+      The separate `codex` command is not installed by this formula.
+      Existing direct OpenAI sessions and commands are preserved.
+
+      If an old ~/bin or ~/.local/bin launcher shadows Homebrew, migrate it once:
+
+        #{opt_bin}/codex-ai-center repair-install
+
+      This preserves a backup and links known legacy launchers to the stable
+      Homebrew path. Custom scripts, sessions and credentials are not modified.
     EOS
   end
 
   test do
-    assert_equal "codex-ai-center 0.1.20\n", shell_output("#{bin}/codex-ai-center --version")
+    assert_equal "codex-ai-center 0.1.21\n", shell_output("#{bin}/codex-ai-center --version")
     assert_equal "codex-cli 0.153.4\n", shell_output("#{bin}/codex-ai-center-stock --version")
+    assert_path_exists libexec/"bin/codex-ai-center-stock"
   end
 end
