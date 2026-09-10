@@ -78,6 +78,11 @@ class CodexAiCenter < Formula
     sha256 "600f49d217304a5902ac3c37e1281c9fe94e4d0489de643a9504c5cdfdfc6b29"
   end
 
+  resource "packaging" do
+    url "https://files.pythonhosted.org/packages/7d/fa/3944b40b07da9ce895c0e6303a5ab7d53da063554f534556b134a54d6093/packaging-26.3.tar.gz"
+    sha256 "94edc256424af38762eb31306eed28beb9f0efc50a8837492c9d6fd6004aed79"
+  end
+
   def install
     venv = virtualenv_create(libexec, "python3.14")
     dependency_archives = resources.reject do |resource|
@@ -130,6 +135,7 @@ class CodexAiCenter < Formula
     assert_equal "codex-ai-center 0.1.24\n", shell_output("#{bin}/codex-ai-center --version")
     assert_equal "codex-cli 0.153.4\n", shell_output("#{bin}/codex-ai-center-stock --version")
     assert_path_exists libexec/"bin/codex-ai-center-stock"
+    system formula_opt_bin("python@3.14")/"python3.14", "-m", "pip", "--python=#{libexec}/bin/python", "check"
     system libexec/"bin/python", "-c", <<~PYTHON
       from importlib.metadata import version
       from cryptography.fernet import Fernet
