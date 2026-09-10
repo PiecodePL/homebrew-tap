@@ -3,10 +3,16 @@ class CodexAiCenter < Formula
 
   desc "Managed AI Center profile for the stock Codex CLI"
   homepage "https://chat.piecode.pl/console/codex-onboarding"
-  url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.22/codex_ai_center_client-0.1.22-py3-none-any.whl"
-  sha256 "1c911d5311deea2cd237a360b400da80dda82683218a10c8a6ac47544ac0568e"
+  url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.24/codex_ai_center_client-0.1.24-py3-none-any.whl"
+  sha256 "03c2960e2d7fdd0eb571a9a633f4a33823803a29da6cbbad5bb28d7e0e9a5cf8"
 
   depends_on "python@3.14"
+
+  on_intel do
+    depends_on "pkgconf" => :build
+    depends_on "rust" => :build
+    depends_on "openssl@3"
+  end
 
   resource "stock-codex" do
     on_arm do
@@ -36,8 +42,15 @@ class CodexAiCenter < Formula
   end
 
   resource "cryptography" do
-    url "https://files.pythonhosted.org/packages/0c/91/925c0ac74362172ae4516000fe877912e33b5983df735ff290c653de4913/cryptography-45.0.7-cp311-abi3-macosx_10_9_universal2.whl"
-    sha256 "3be4f21c6245930688bd9e162829480de027f8bf962ede33d4f8ba7d67a00cee"
+    on_arm do
+      url "https://files.pythonhosted.org/packages/c5/5c/59086b4aac5e879d38ddbcf74e4be7ade89cebc3eb199a55da998c3bb46a/cryptography-50.0.0-cp311-abi3-macosx_11_0_arm64.whl"
+      sha256 "031e2d5dd4bb9caa3ca9c82e5a197fd8ae680232cee62603d1a813f3f07e3d03"
+    end
+
+    on_intel do
+      url "https://files.pythonhosted.org/packages/de/41/6cbdcf9142d00fe82836fbb51e503e58088575cf7a0fe1dbff6695bf0840/cryptography-50.0.0.tar.gz"
+      sha256 "eeac2acb5a20ed25e0ad6d1df9891a520b78b404266b6d11778f25d5d691a6c9"
+    end
   end
 
   resource "h11" do
@@ -67,13 +80,19 @@ class CodexAiCenter < Formula
 
   def install
     venv = virtualenv_create(libexec, "python3.14")
-    cryptography_wheel = buildpath/"cryptography-45.0.7-cp311-abi3-macosx_10_9_universal2.whl"
-    cp resource("cryptography").cached_download, cryptography_wheel
     dependency_archives = resources.reject do |resource|
       ["cryptography", "stock-codex"].include?(resource.name)
     end.map(&:cached_download)
-    venv.pip_install dependency_archives + [cryptography_wheel]
-    client_wheel = buildpath/"codex_ai_center_client-0.1.22-py3-none-any.whl"
+    venv.pip_install dependency_archives
+    if Hardware::CPU.arm?
+      cryptography_wheel = buildpath/"cryptography-50.0.0-cp311-abi3-macosx_11_0_arm64.whl"
+      cp resource("cryptography").cached_download, cryptography_wheel
+      venv.pip_install cryptography_wheel
+    else
+      ENV["OPENSSL_DIR"] = formula_opt_prefix("openssl@3")
+      resource("cryptography").stage { venv.pip_install Pathname.pwd }
+    end
+    client_wheel = buildpath/"codex_ai_center_client-0.1.24-py3-none-any.whl"
     cp cached_download, client_wheel
     venv.pip_install client_wheel
     bin.install_symlink libexec/"bin/codex-ai-center"
@@ -108,8 +127,15 @@ class CodexAiCenter < Formula
   end
 
   test do
-    assert_equal "codex-ai-center 0.1.22\n", shell_output("#{bin}/codex-ai-center --version")
+    assert_equal "codex-ai-center 0.1.24\n", shell_output("#{bin}/codex-ai-center --version")
     assert_equal "codex-cli 0.153.4\n", shell_output("#{bin}/codex-ai-center-stock --version")
     assert_path_exists libexec/"bin/codex-ai-center-stock"
+    system libexec/"bin/python", "-c", <<~PYTHON
+      from importlib.metadata import version
+      from cryptography.fernet import Fernet
+      assert version("cryptography").split(".")[0] == "50"
+      cipher = Fernet(Fernet.generate_key())
+      assert cipher.decrypt(cipher.encrypt(b"synthetic-package-test")) == b"synthetic-package-test"
+    PYTHON
   end
 end
