@@ -3,8 +3,8 @@ class CodexAiCenter < Formula
 
   desc "Managed AI Center profile for the stock Codex CLI"
   homepage "https://chat.piecode.pl/console/codex-onboarding"
-  url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.26/codex_ai_center_client-0.1.26-py3-none-any.whl"
-  sha256 "39d95bb98aa08b9127db57c396148b2c43384cde136f21ba80ed9e6d4ba1059f"
+  url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.27/codex_ai_center_client-0.1.27-py3-none-any.whl"
+  sha256 "478b85fad0ba7485c54cdd3316b24327c956899371df5f6123d49f0bb797e19a"
 
   depends_on "python@3.14"
 
@@ -16,13 +16,13 @@ class CodexAiCenter < Formula
 
   resource "stock-codex" do
     on_arm do
-      url "https://github.com/openai/codex/releases/download/rust-v0.153.4/codex-package-aarch64-apple-darwin.tar.gz"
-      sha256 "35438da1fbf7a6db7ddb3bcec84448fa6015ba188461472a97d9d1da7d9c4353"
+      url "https://github.com/openai/codex/releases/download/rust-v0.155.1/codex-package-aarch64-apple-darwin.tar.gz"
+      sha256 "e6e08717da9e35b72332eff753527fe79a9ae876081033c5c6820a8e5f58b943"
     end
 
     on_intel do
-      url "https://github.com/openai/codex/releases/download/rust-v0.153.4/codex-package-x86_64-apple-darwin.tar.gz"
-      sha256 "3ee638d7155c856ef31f3f4a85cb2195de1939962d3924c935b24f0514564a3d"
+      url "https://github.com/openai/codex/releases/download/rust-v0.155.1/codex-package-x86_64-apple-darwin.tar.gz"
+      sha256 "be752aebb2ac022c5bfed3fa14f46943d11ddb36a950b553b058794aba22496a"
     end
   end
 
@@ -97,7 +97,7 @@ class CodexAiCenter < Formula
       ENV["OPENSSL_DIR"] = formula_opt_prefix("openssl@3")
       resource("cryptography").stage { venv.pip_install Pathname.pwd }
     end
-    client_wheel = buildpath/"codex_ai_center_client-0.1.26-py3-none-any.whl"
+    client_wheel = buildpath/"codex_ai_center_client-0.1.27-py3-none-any.whl"
     cp cached_download, client_wheel
     venv.pip_install client_wheel
     bin.install_symlink libexec/"bin/codex-ai-center"
@@ -132,8 +132,8 @@ class CodexAiCenter < Formula
   end
 
   test do
-    assert_equal "codex-ai-center 0.1.26\n", shell_output("#{bin}/codex-ai-center --version")
-    assert_equal "codex-cli 0.153.4\n", shell_output("#{bin}/codex-ai-center-stock --version")
+    assert_equal "codex-ai-center 0.1.27\n", shell_output("#{bin}/codex-ai-center --version")
+    assert_equal "codex-cli 0.155.1\n", shell_output("#{bin}/codex-ai-center-stock --version")
     assert_path_exists libexec/"bin/codex-ai-center-stock"
     system formula_opt_bin("python@3.14")/"python3.14", "-m", "pip", "--python=#{libexec}/bin/python", "check"
     system libexec/"bin/python", "-c", <<~PYTHON
