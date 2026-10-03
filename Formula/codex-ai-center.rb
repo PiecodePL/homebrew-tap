@@ -3,8 +3,8 @@ class CodexAiCenter < Formula
 
   desc "Managed AI Center profile for the stock Codex CLI"
   homepage "https://chat.piecode.pl/console/codex-onboarding"
-  url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.30/codex_ai_center_client-0.1.30-py3-none-any.whl"
-  sha256 "0109ae52b5fd9ffc3423dfc6336d31700da7d2332c405a64c5a2f4c5d4e61032"
+  url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.31/codex_ai_center_client-0.1.31-py3-none-any.whl"
+  sha256 "d015b2d8ada98aaed49203fd3fa09206bff02122d8419f92dbc8c778dc4ffb28"
 
   depends_on "python@3.14"
 
@@ -97,7 +97,7 @@ class CodexAiCenter < Formula
       ENV["OPENSSL_DIR"] = formula_opt_prefix("openssl@3")
       resource("cryptography").stage { venv.pip_install Pathname.pwd }
     end
-    client_wheel = buildpath/"codex_ai_center_client-0.1.30-py3-none-any.whl"
+    client_wheel = buildpath/"codex_ai_center_client-0.1.31-py3-none-any.whl"
     cp cached_download, client_wheel
     venv.pip_install client_wheel
     bin.install_symlink libexec/"bin/codex-ai-center"
@@ -132,7 +132,7 @@ class CodexAiCenter < Formula
   end
 
   test do
-    assert_equal "codex-ai-center 0.1.30\n", shell_output("#{bin}/codex-ai-center --version")
+    assert_equal "codex-ai-center 0.1.31\n", shell_output("#{bin}/codex-ai-center --version")
     assert_equal "codex-cli 0.159.3\n", shell_output("#{bin}/codex-ai-center-stock --version")
     assert_path_exists libexec/"bin/codex-ai-center-stock"
     system formula_opt_bin("python@3.14")/"python3.14", "-m", "pip", "--python=#{libexec}/bin/python", "check"
