@@ -37,8 +37,15 @@ class CodexAiCenter < Formula
   end
 
   resource "cffi" do
-    url "https://files.pythonhosted.org/packages/9e/ef/008a1939e372c06329a3fce4279c02f328488f3526744906eeec3da7ad5f/cffi-2.1.1.tar.gz"
-    sha256 "dd31f52ea1086513bb9df30f8fcee9b8918323ae067a3d5b78bc826a000712be"
+    on_arm do
+      url "https://files.pythonhosted.org/packages/b3/a9/9db617d05d7367c1ad0ab00b3aa6e6f9281edd689b4ee9ea0e5a84e89c97/cffi-2.1.1-cp314-cp314-macosx_11_0_arm64.whl"
+      sha256 "661c298b4821edebead0c91edd2b00374d67ad7c5a1f7a91d4442633b79d6a72"
+    end
+
+    on_intel do
+      url "https://files.pythonhosted.org/packages/9e/ef/008a1939e372c06329a3fce4279c02f328488f3526744906eeec3da7ad5f/cffi-2.1.1.tar.gz"
+      sha256 "dd31f52ea1086513bb9df30f8fcee9b8918323ae067a3d5b78bc826a000712be"
+    end
   end
 
   resource "cryptography" do
@@ -84,12 +91,16 @@ class CodexAiCenter < Formula
   end
 
   def install
-    venv = virtualenv_create(libexec, "python3.14")
+    venv = virtualenv_create(libexec, (formula_opt_bin("python@3.14")/"python3.14").to_s)
     dependency_archives = resources.reject do |resource|
-      ["cryptography", "stock-codex"].include?(resource.name)
+      ["cryptography", "stock-codex"].include?(resource.name) ||
+        (Hardware::CPU.arm? && resource.name == "cffi")
     end.map(&:cached_download)
     venv.pip_install dependency_archives
     if Hardware::CPU.arm?
+      cffi_wheel = buildpath/"cffi-2.1.1-cp314-cp314-macosx_11_0_arm64.whl"
+      cp resource("cffi").cached_download, cffi_wheel
+      venv.pip_install cffi_wheel
       cryptography_wheel = buildpath/"cryptography-50.0.0-cp311-abi3-macosx_11_0_arm64.whl"
       cp resource("cryptography").cached_download, cryptography_wheel
       venv.pip_install cryptography_wheel
@@ -141,7 +152,9 @@ class CodexAiCenter < Formula
     system formula_opt_bin("python@3.14")/"python3.14", "-m", "pip", "--python=#{libexec}/bin/python", "check"
     system libexec/"bin/python", "-c", <<~PYTHON
       from importlib.metadata import version
+      from cffi import FFI
       from cryptography.fernet import Fernet
+      assert FFI().sizeof("int") == 4
       assert version("cryptography").split(".")[0] == "50"
       cipher = Fernet(Fernet.generate_key())
       assert cipher.decrypt(cipher.encrypt(b"synthetic-package-test")) == b"synthetic-package-test"
