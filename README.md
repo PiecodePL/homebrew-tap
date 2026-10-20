@@ -31,3 +31,20 @@ for a local conversation can send its context to the approved subscription
 route; the wrapper never makes that transition automatically. Provider
 `ai_center` is explicit, without session database rewrites or cloud fallback.
 Versioned Homebrew formulae for Piecode developer tools
+
+## Service CLI Release Gate
+
+The published 0.1.36 package is unchanged. Service-account CLI support is being
+prepared on `feat/service-codex-cli-20261020`; it is not available through
+`brew upgrade` yet. Do not publish the older 0.1.26 client source over 0.1.36.
+
+The coordinated successor must preserve all 0.1.36 employee fixes, include
+`codex_service_client` and `codex_service_relay`, advertise service protocol 1
+through `codex-ai-center runtime --json`, and pass the native stock 0.159.3
+tool/continuation/lifecycle tests. Formula tests enforce the new contract for
+versions after 0.1.36. Update the immutable wheel URL, version and real SHA256
+together only after publishing the accepted artifact. Linux application images
+need their own accepted stock runtime artifact; Homebrew is the macOS client.
+
+The backend service endpoint must also be deployed and explicitly enabled for
+each application scope. Employee device login is not a service-account token.
