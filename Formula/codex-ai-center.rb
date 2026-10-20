@@ -146,6 +146,21 @@ class CodexAiCenter < Formula
     assert_equal "codex-ai-center 0.1.36\n", shell_output("#{bin}/codex-ai-center --version")
     assert_equal "codex-cli 0.159.3\n", shell_output("#{bin}/codex-ai-center-stock --version")
     assert_path_exists libexec/"bin/codex-ai-center-stock"
+    if version >= Version.new("0.1.37")
+      require "json"
+      runtime = JSON.parse(shell_output("#{bin}/codex-ai-center runtime --json"))
+      assert_equal "ai-center.codex-client-runtime.v1", runtime.fetch("schema")
+      assert_equal 1, runtime.fetch("service_protocol")
+      assert_equal false, runtime.fetch("raw_credential_included")
+      assert_match "--credential-env", shell_output("#{bin}/codex-ai-center service --help")
+      ENV.delete("AI_CENTER_PACKAGE_TEST_MISSING_TOKEN")
+      failure = JSON.parse(shell_output(
+        "#{bin}/codex-ai-center service --workspace synthetic --project fixture " \
+        "--credential-env AI_CENTER_PACKAGE_TEST_MISSING_TOKEN status 2>&1", 1
+      ))
+      assert_equal "codex_service_credential_unavailable", failure.fetch("safe_error_code")
+      assert_equal false, failure.fetch("raw_credential_included")
+    end
     ENV["CODEX_HOME"] = testpath/"offline-codex-home"
     assert_match "Resume a previous session", shell_output("#{bin}/codex-ai-center exec resume --help")
     assert_match "Resume a previous session", shell_output("#{bin}/codex-ai-center help exec resume")
