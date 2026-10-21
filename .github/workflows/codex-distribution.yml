@@ -1,0 +1,40 @@
+name: Codex distribution
+
+on:
+  push:
+    branches: [release/codex-0.1.37]
+  pull_request:
+    paths: [Formula/codex-ai-center.rb, .github/workflows/codex-distribution.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  homebrew:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Install exact candidate and all dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          brew update
+          brew tap-new piecode/distribution-validation
+          tap="$(brew --repository piecode/distribution-validation)"
+          cp Formula/codex-ai-center.rb "$tap/Formula/codex-ai-center.rb"
+          brew install --build-from-source piecode/distribution-validation/codex-ai-center
+      - name: Test installed formula
+        shell: bash
+        run: |
+          set -euo pipefail
+          brew test piecode/distribution-validation/codex-ai-center
+          brew list --versions python@3.14 codex-ai-center
+          codex-ai-center runtime --json
+          codex-ai-center-stock --version
