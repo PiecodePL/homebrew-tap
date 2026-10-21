@@ -1,0 +1,47 @@
+name: Codex distribution
+
+on:
+  pull_request:
+    paths: [Formula/codex-ai-center.rb, .github/workflows/codex-distribution.yml]
+  workflow_dispatch:
+    inputs:
+      intel_acceptance:
+        description: Also test the held Intel artifact and its source-built dependencies
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  homebrew:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(inputs.intel_acceptance && '["macos-15", "macos-15-intel"]' || '["macos-15"]') }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Install exact candidate and all dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          brew update
+          brew tap-new piecode/distribution-validation
+          tap="$(brew --repository piecode/distribution-validation)"
+          cp Formula/codex-ai-center.rb "$tap/Formula/codex-ai-center.rb"
+          expected=0.1.36
+          if [ "$(uname -m)" = arm64 ]; then expected=0.1.37; fi
+          brew info --json=v2 piecode/distribution-validation/codex-ai-center | jq -e --arg version "$expected" '.formulae[0].versions.stable == $version'
+          brew install --build-from-source piecode/distribution-validation/codex-ai-center
+      - name: Test installed formula
+        shell: bash
+        run: |
+          set -euo pipefail
+          brew test piecode/distribution-validation/codex-ai-center
+          brew list --versions python@3.14 codex-ai-center
+          if [ "$(uname -m)" = arm64 ]; then codex-ai-center runtime --json; fi
+          codex-ai-center-stock --version

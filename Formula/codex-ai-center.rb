@@ -3,12 +3,18 @@ class CodexAiCenter < Formula
 
   desc "Managed AI Center profile for the stock Codex CLI"
   homepage "https://chat.piecode.pl/console/codex-onboarding"
-  url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.36/codex_ai_center_client-0.1.36-py3-none-any.whl"
-  sha256 "ca373bda27c53dae0cced6c3ae5edd756b98916587f62f90d9233a805c72aa6a"
+
+  on_arm do
+    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.37/codex_ai_center_client-0.1.37-py3-none-any.whl"
+    sha256 "c42b56865384bc438b25082a0aa89a7df1e5c6a5b7992beeb4218305699f2fa0"
+  end
 
   depends_on "python@3.14"
 
   on_intel do
+    # Hold the previous artifact until Intel dependency/build acceptance passes.
+    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.36/codex_ai_center_client-0.1.36-py3-none-any.whl"
+    sha256 "ca373bda27c53dae0cced6c3ae5edd756b98916587f62f90d9233a805c72aa6a"
     depends_on "pkgconf" => :build
     depends_on "rust" => :build
     depends_on "openssl@3"
@@ -108,7 +114,7 @@ class CodexAiCenter < Formula
       ENV["OPENSSL_DIR"] = formula_opt_prefix("openssl@3")
       resource("cryptography").stage { venv.pip_install Pathname.pwd }
     end
-    client_wheel = buildpath/"codex_ai_center_client-0.1.36-py3-none-any.whl"
+    client_wheel = buildpath/"codex_ai_center_client-#{version}-py3-none-any.whl"
     cp cached_download, client_wheel
     venv.pip_install client_wheel
     bin.install_symlink libexec/"bin/codex-ai-center"
@@ -143,9 +149,24 @@ class CodexAiCenter < Formula
   end
 
   test do
-    assert_equal "codex-ai-center 0.1.36\n", shell_output("#{bin}/codex-ai-center --version")
+    assert_equal "codex-ai-center #{version}\n", shell_output("#{bin}/codex-ai-center --version")
     assert_equal "codex-cli 0.159.3\n", shell_output("#{bin}/codex-ai-center-stock --version")
     assert_path_exists libexec/"bin/codex-ai-center-stock"
+    if version >= Version.new("0.1.37")
+      require "json"
+      runtime = JSON.parse(shell_output("#{bin}/codex-ai-center runtime --json"))
+      assert_equal "ai-center.codex-client-runtime.v1", runtime.fetch("schema")
+      assert_equal 1, runtime.fetch("service_protocol")
+      assert_equal false, runtime.fetch("raw_credential_included")
+      assert_match "--credential-env", shell_output("#{bin}/codex-ai-center service --help")
+      ENV.delete("AI_CENTER_PACKAGE_TEST_MISSING_TOKEN")
+      failure = JSON.parse(shell_output(
+        "#{bin}/codex-ai-center service --workspace synthetic --project fixture " \
+        "--credential-env AI_CENTER_PACKAGE_TEST_MISSING_TOKEN status 2>&1", 1
+      ))
+      assert_equal "codex_service_credential_unavailable", failure.fetch("safe_error_code")
+      assert_equal false, failure.fetch("raw_credential_included")
+    end
     ENV["CODEX_HOME"] = testpath/"offline-codex-home"
     assert_match "Resume a previous session", shell_output("#{bin}/codex-ai-center exec resume --help")
     assert_match "Resume a previous session", shell_output("#{bin}/codex-ai-center help exec resume")
