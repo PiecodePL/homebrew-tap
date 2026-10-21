@@ -34,13 +34,22 @@ Versioned Homebrew formulae for Piecode developer tools
 
 ## Service CLI Release Gate
 
-The published 0.1.36 package is unchanged. Service-account CLI support is being
-prepared on `feat/service-codex-cli-20261020`; it is not available through
-`brew upgrade` yet. Do not publish the older 0.1.26 client source over 0.1.36.
+This release stages 0.1.37 for Apple Silicon and the independently verified
+Linux x86_64 distribution. It preserves the employee fixes in 0.1.36 and adds
+service protocol 1. A prerelease asset is not permission to migrate application
+traffic; use only the coordinated backend release and exact scope admission.
 
-The coordinated successor must preserve all 0.1.36 employee fixes, include
+The Intel formula deliberately remains on the unchanged 0.1.36 artifact.
+Current Homebrew has no macOS Intel bottles for Python 3.14 or Rust; its clean
+installation starts substantial dependency source builds. The attempted Intel
+campaign did not reach formula tests and is not accepted. Do not describe
+Intel as service-ready. A separate explicit CI dispatch can test that held
+platform; only a passing campaign may promote its version. Existing Intel
+installations are not replaced by the 0.1.37 rollout.
+
+The coordinated successor preserves all 0.1.36 employee fixes, includes
 `codex_service_client` and `codex_service_relay`, advertise service protocol 1
-through `codex-ai-center runtime --json`, and pass the native stock 0.159.3
+through `codex-ai-center runtime --json`, and passes the native stock 0.159.3
 tool/continuation/lifecycle tests. Formula tests enforce the new contract for
 versions after 0.1.36. Update the immutable wheel URL, version and real SHA256
 together only after publishing the accepted artifact. Linux application images
