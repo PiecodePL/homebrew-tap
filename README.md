@@ -26,11 +26,29 @@ codex-ai-center --model qwen-local resume --last
 codex-ai-center --model company-default resume --last
 ```
 
-Resume and fork require explicit model selection. Choosing `company-default`
-for a local conversation can send its context to the approved subscription
-route; the wrapper never makes that transition automatically. Provider
-`ai_center` is explicit, without session database rewrites or cloud fallback.
-Versioned Homebrew formulae for Piecode developer tools
+Resume preserves the saved model after fresh authorization. An explicit cloud
+model switch is not allowed for a local-only conversation. Provider `ai_center`
+is explicit, without session database rewrites or automatic cloud fallback.
+
+## Unified Model Catalog
+
+Version 0.1.38 retains stock Codex 0.159.3 and service protocol 1. Console and CLI
+use one exact model allowlist and default. Native Claude models require the
+owner's connected account, fresh catalog, active device-bound execution consent
+and an available slot. Existing policies are not migrated by installing this
+client; administrators must coordinate unified policy writes with client updates.
+
+The release candidate was tested through production on Apple Silicon: Claude
+read/edit/test, saved-model resume, both OpenAI/Claude transitions in the same
+conversation, canonical usage and released slots, cancellation and revoked-consent
+denial. A corrected launcher keeps Claude reasoning settings out of OpenAI
+requests. There is no API fallback. Account-native usage can incur extra charges
+when the account permits them; the client does not promise subscription-only billing.
+
+Two-user Console acceptance and the stock interrupted-shutdown diagnostic remain
+open. Publication does not close CCA-5 or authorize application fleet migration.
+The Intel formula remains unchanged at 0.1.36. Linux service installations remain
+on their separately accepted 0.1.37 distribution until verified independently.
 
 ## Service CLI Release Gate
 
