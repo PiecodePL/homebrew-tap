@@ -5,8 +5,8 @@ class CodexAiCenter < Formula
   homepage "https://chat.piecode.pl/console/codex-onboarding"
 
   on_arm do
-    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.38/codex_ai_center_client-0.1.38-py3-none-any.whl"
-    sha256 "fe05fc325c7e240027ab81123da116ea1383bf6d73b0ea6eff46b9cb476eaa9b"
+    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.39/codex_ai_center_client-0.1.39-py3-none-any.whl"
+    sha256 "6eafd19b82020d71ab1aa553735d612b645a05f82de8bc243a4ecda0e54923d6"
   end
 
   depends_on "python@3.14"
@@ -96,6 +96,11 @@ class CodexAiCenter < Formula
     sha256 "94edc256424af38762eb31306eed28beb9f0efc50a8837492c9d6fd6004aed79"
   end
 
+  resource "websockets" do
+    url "https://files.pythonhosted.org/packages/21/f7/bc3a25c5ec26ce62ce487690becc2f3710bbc7b33338f005ad390db0b986/websockets-16.1.1.tar.gz"
+    sha256 "db234eda965dcce15df96bb9709f587cd87d4d52aaf0e80e2f34ec04c7670c57"
+  end
+
   def install
     venv = virtualenv_create(libexec, (formula_opt_bin("python@3.14")/"python3.14").to_s)
     dependency_archives = resources.reject do |resource|
@@ -158,6 +163,11 @@ class CodexAiCenter < Formula
       assert_equal "ai-center.codex-client-runtime.v1", runtime.fetch("schema")
       assert_equal 1, runtime.fetch("service_protocol")
       assert_equal false, runtime.fetch("raw_credential_included")
+      if version >= Version.new("0.1.39")
+        assert_equal 1, runtime.fetch("remote_protocol")
+        assert_match "attach", shell_output("#{bin}/codex-ai-center remote --help")
+        assert_match "--host-state-root", shell_output("#{bin}/codex-ai-center remote attach --help")
+      end
       assert_match "--credential-env", shell_output("#{bin}/codex-ai-center service --help")
       ENV.delete("AI_CENTER_PACKAGE_TEST_MISSING_TOKEN")
       failure = JSON.parse(shell_output(
