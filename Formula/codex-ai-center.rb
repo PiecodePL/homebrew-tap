@@ -5,8 +5,8 @@ class CodexAiCenter < Formula
   homepage "https://chat.piecode.pl/console/codex-onboarding"
 
   on_arm do
-    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.39/codex_ai_center_client-0.1.39-py3-none-any.whl"
-    sha256 "6eafd19b82020d71ab1aa553735d612b645a05f82de8bc243a4ecda0e54923d6"
+    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.40/codex_ai_center_client-0.1.40-py3-none-any.whl"
+    sha256 "15a3e55d613c08c7efb72da79aaf952a050e5c0b02a712fda501dbf41127a7a1"
   end
 
   depends_on "python@3.14"
@@ -167,6 +167,14 @@ class CodexAiCenter < Formula
         assert_equal 1, runtime.fetch("remote_protocol")
         assert_match "attach", shell_output("#{bin}/codex-ai-center remote --help")
         assert_match "--host-state-root", shell_output("#{bin}/codex-ai-center remote attach --help")
+      end
+      if version >= Version.new("0.1.40")
+        system libexec/"bin/python", "-I", "-c", <<~PYTHON
+          from ai_center.runtime.codex_native_model import native_claude_descriptor
+          model = native_claude_descriptor("claude-opus-5-5", "Opus")
+          assert model["context_window"] == model["max_context_window"] == 200000
+          assert model["auto_compact_token_limit"] == 160000
+        PYTHON
       end
       assert_match "--credential-env", shell_output("#{bin}/codex-ai-center service --help")
       ENV.delete("AI_CENTER_PACKAGE_TEST_MISSING_TOKEN")
