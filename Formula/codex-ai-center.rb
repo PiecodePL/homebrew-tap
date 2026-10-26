@@ -5,8 +5,8 @@ class CodexAiCenter < Formula
   homepage "https://chat.piecode.pl/console/codex-onboarding"
 
   on_arm do
-    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.41/codex_ai_center_client-0.1.41-py3-none-any.whl"
-    sha256 "1b5c9a6f6a6198a852ef2d1e61c30c263c215e2997adac3062a29ff434dddec3"
+    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.42/codex_ai_center_client-0.1.42-py3-none-any.whl"
+    sha256 "a067cc5b6868527e3796c23668cf6662ec32671603178754d1002565c9683cfa"
   end
 
   depends_on "python@3.14"
@@ -198,6 +198,23 @@ class CodexAiCenter < Formula
                   assert reader.terminals == {"synthetic-child-turn": "completed"}
               finally:
                   os.close(fd)
+        PYTHON
+      end
+      if version >= Version.new("0.1.42")
+        system libexec/"bin/python", "-I", "-c", <<~PYTHON
+          from ai_center.runtime.codex_native_model import (
+              NATIVE_CLAUDE_LAUNCH_OVERRIDES, native_reasoning_preferences,
+          )
+          assert not any("reasoning" in value for value in NATIVE_CLAUDE_LAUNCH_OVERRIDES)
+          assert native_reasoning_preferences({"effort": "high", "summary": "auto"}) == {
+              "effort": "none", "summary": "none",
+          }
+          try:
+              native_reasoning_preferences({"effort": "unknown"})
+          except ValueError:
+              pass
+          else:
+              raise AssertionError("unknown reasoning must be rejected")
         PYTHON
       end
       assert_match "--credential-env", shell_output("#{bin}/codex-ai-center service --help")
