@@ -5,8 +5,8 @@ class CodexAiCenter < Formula
   homepage "https://chat.piecode.pl/console/codex-onboarding"
 
   on_arm do
-    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.40/codex_ai_center_client-0.1.40-py3-none-any.whl"
-    sha256 "15a3e55d613c08c7efb72da79aaf952a050e5c0b02a712fda501dbf41127a7a1"
+    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.41/codex_ai_center_client-0.1.41-py3-none-any.whl"
+    sha256 "1b5c9a6f6a6198a852ef2d1e61c30c263c215e2997adac3062a29ff434dddec3"
   end
 
   depends_on "python@3.14"
@@ -174,6 +174,30 @@ class CodexAiCenter < Formula
           model = native_claude_descriptor("claude-opus-5-5", "Opus")
           assert model["context_window"] == model["max_context_window"] == 200000
           assert model["auto_compact_token_limit"] == 160000
+        PYTHON
+      end
+      if version >= Version.new("0.1.41")
+        system libexec/"bin/python", "-I", "-c", <<~PYTHON
+          import json, os, tempfile
+          from pathlib import Path
+          from ai_center.runtime.codex_transparent_lifecycle import CodexLifecycleReader, open_rollout
+          def record(kind, **payload):
+              return json.dumps({"type": kind, "payload": payload}) + "\\n"
+          with tempfile.TemporaryDirectory() as root:
+              path = Path(root) / "rollout-synthetic-child-thread.jsonl"
+              path.write_text(record("session_meta", id="synthetic-child-thread", forked_from_id="synthetic-parent-thread")
+                  + record("session_meta", id="synthetic-parent-thread")
+                  + record("event_msg", type="task_started", turn_id="synthetic-parent-turn")
+                  + record("event_msg", type="task_started", turn_id="synthetic-child-turn")
+                  + record("event_msg", type="task_complete", turn_id="synthetic-child-turn"))
+              fd = open_rollout(str(path), thread_id="synthetic-child-thread")
+              try:
+                  reader = CodexLifecycleReader(fd, thread_id="synthetic-child-thread", initial_turn_id="synthetic-child-turn")
+                  reader.poll()
+                  assert list(reader.pending) == ["synthetic-child-turn"]
+                  assert reader.terminals == {"synthetic-child-turn": "completed"}
+              finally:
+                  os.close(fd)
         PYTHON
       end
       assert_match "--credential-env", shell_output("#{bin}/codex-ai-center service --help")
