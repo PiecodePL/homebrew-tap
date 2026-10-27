@@ -5,8 +5,8 @@ class CodexAiCenter < Formula
   homepage "https://chat.piecode.pl/console/codex-onboarding"
 
   on_arm do
-    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.42/codex_ai_center_client-0.1.42-py3-none-any.whl"
-    sha256 "a067cc5b6868527e3796c23668cf6662ec32671603178754d1002565c9683cfa"
+    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.43/codex_ai_center_client-0.1.43-py3-none-any.whl"
+    sha256 "77ac1a37ff7e66b03c00cd6f294d7af12752139f61232427bc0c241a1af6d7c5"
   end
 
   depends_on "python@3.14"
@@ -215,6 +215,40 @@ class CodexAiCenter < Formula
               pass
           else:
               raise AssertionError("unknown reasoning must be rejected")
+        PYTHON
+      end
+      if version >= Version.new("0.1.43")
+        system libexec/"bin/python", "-I", "-c", <<~PYTHON
+          import json, subprocess, sys, tempfile, tomllib
+          from pathlib import Path
+          from ai_center.runtime import codex_transparent_client as client
+          with tempfile.TemporaryDirectory() as root:
+              helper = Path(root) / "delayed-helper"
+              token = "synthetic-package-credential-only"
+              helper.write_text(f"#!{sys.executable}\\nimport time\\ntime.sleep(6)\\nprint({token!r})\\n")
+              helper.chmod(0o700)
+              assert client.read_ai_center_helper_token(helper_path=helper) == token
+              profile = tomllib.loads(client.render_managed_codex_profile(
+                  base_url=client.CODEX_TRANSPARENT_DEFAULT_BASE_URL,
+                  helper_path=helper, model_catalog_path=Path(root) / "models.json"))
+              assert profile["model_providers"]["ai_center"]["auth"]["timeout_ms"] == 15000
+              hooks = client._managed_codex_hooks(hook_path=helper,
+                  base_url=client.CODEX_TRANSPARENT_DEFAULT_BASE_URL,
+                  codex_version=client.PACKAGED_CODEX_CLI_VERSION, allow_http_localhost=False)
+              assert hooks["interrupt"].timeout_seconds == 3
+              assert all(hook.timeout_seconds == 15 for name, hook in hooks.items() if name != "interrupt")
+              def timed_out(command, **kwargs):
+                  assert kwargs["timeout"] == 5
+                  raise subprocess.TimeoutExpired(command, 5, output=b"PRIVATE_STDOUT", stderr=b"PRIVATE_STDERR")
+              try:
+                  client.read_ai_center_keychain_token(security_binary=helper, run=timed_out)
+              except client.CodexTransparentClientError as error:
+                  assert error.code == "codex_transparent_keychain_timeout"
+                  diagnostic = client._safe_error(error.code)
+                  assert "PRIVATE_" not in diagnostic
+                  assert json.loads(diagnostic)["timeout_ms"] == 5000
+              else:
+                  raise AssertionError("credential timeout must fail closed")
         PYTHON
       end
       assert_match "--credential-env", shell_output("#{bin}/codex-ai-center service --help")
