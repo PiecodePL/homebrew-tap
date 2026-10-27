@@ -5,8 +5,8 @@ class CodexAiCenter < Formula
   homepage "https://chat.piecode.pl/console/codex-onboarding"
 
   on_arm do
-    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.43/codex_ai_center_client-0.1.43-py3-none-any.whl"
-    sha256 "77ac1a37ff7e66b03c00cd6f294d7af12752139f61232427bc0c241a1af6d7c5"
+    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.44/codex_ai_center_client-0.1.44-py3-none-any.whl"
+    sha256 "308d97e29fe7993e9fe3263afe46d098747e8e07c112f5c9b983290b8c185768"
   end
 
   depends_on "python@3.14"
@@ -249,6 +249,32 @@ class CodexAiCenter < Formula
                   assert json.loads(diagnostic)["timeout_ms"] == 5000
               else:
                   raise AssertionError("credential timeout must fail closed")
+        PYTHON
+      end
+      if version >= Version.new("0.1.44")
+        system libexec/"bin/python", "-I", "-c", <<~PYTHON
+          import tempfile
+          from pathlib import Path
+          from ai_center.runtime.codex_transparent_client import CodexTransparentClientError
+          from ai_center.runtime.codex_transparent_hook import CodexTransparentHookIdentity, watch_codex_task
+          for code in ("codex_transparent_keychain_timeout", "codex_transparent_helper_token_timeout"):
+              clock, calls = [0.0], []
+              def sleep(seconds):
+                  clock[0] += seconds
+              def heartbeat(**correlation):
+                  calls.append(correlation)
+                  if len(calls) == 2:
+                      raise CodexTransparentClientError(code)
+                  if len(calls) == 4:
+                      raise CodexTransparentClientError("codex_transparent_task_control_conflict")
+                  return {"task_status": "running"}
+              with tempfile.TemporaryDirectory() as root:
+                  outcome = watch_codex_task(
+                      CodexTransparentHookIdentity("synthetic-session", "synthetic-turn"),
+                      heartbeat=heartbeat, sleep=sleep, monotonic=lambda: clock[0],
+                      lock_root=Path(root), max_lifetime_seconds=120, retry_jitter_ratio=0)
+              assert outcome == "terminal" and len(calls) == 4
+              assert clock[0] == 61.0
         PYTHON
       end
       assert_match "--credential-env", shell_output("#{bin}/codex-ai-center service --help")
