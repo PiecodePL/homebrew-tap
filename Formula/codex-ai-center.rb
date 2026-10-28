@@ -5,8 +5,8 @@ class CodexAiCenter < Formula
   homepage "https://chat.piecode.pl/console/codex-onboarding"
 
   on_arm do
-    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.48/codex_ai_center_client-0.1.48-py3-none-any.whl"
-    sha256 "6935f1ba80d5735fffdd8cc5813f3396789e7d707bec6f1b47867033dfc24825"
+    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.49/codex_ai_center_client-0.1.49-py3-none-any.whl"
+    sha256 "fa01906b228899189ee2ebe876eed14d1f6867ee8a873c1296e25adcfabea6ed"
   end
 
   depends_on "python@3.14"
@@ -238,7 +238,7 @@ class CodexAiCenter < Formula
               assert hooks["interrupt"].timeout_seconds == 3
               assert all(hook.timeout_seconds == 15 for name, hook in hooks.items() if name != "interrupt")
               def timed_out(command, **kwargs):
-                  assert kwargs["timeout"] == 5
+                  assert 0 < kwargs["timeout"] <= 5
                   raise subprocess.TimeoutExpired(command, 5, output=b"PRIVATE_STDOUT", stderr=b"PRIVATE_STDERR")
               try:
                   client.read_ai_center_keychain_token(security_binary=helper, run=timed_out)
@@ -301,6 +301,29 @@ class CodexAiCenter < Formula
               assert client._saved_codex_resume_model(home, pinned) == "gpt-6-astra"
               unchanged = ["resume", "--last", "--all", "--cd", str(project)]
               assert client._pin_codex_resume_last(home, unchanged) == unchanged
+        PYTHON
+      end
+      if version >= Version.new("0.1.49")
+        system libexec/"bin/python", "-I", "-c", <<~PYTHON
+          import subprocess, tempfile, tomllib
+          from pathlib import Path
+          from ai_center.runtime import codex_transparent_client as client
+          with tempfile.TemporaryDirectory() as root:
+              helper = Path(root) / "helper"
+              helper.write_text("#!/bin/sh\\nexit 0\\n")
+              helper.chmod(0o700)
+              profile = tomllib.loads(client.render_managed_codex_profile(
+                  base_url=client.CODEX_TRANSPARENT_DEFAULT_BASE_URL,
+                  helper_path=helper, model_catalog_path=Path(root) / "models.json"))
+              assert profile["model_providers"]["ai_center"]["auth"]["refresh_interval_ms"] == 0
+              calls = []
+              def stalled_once(command, **kwargs):
+                  calls.append(kwargs["timeout"])
+                  if len(calls) == 1:
+                      raise subprocess.TimeoutExpired(command, kwargs["timeout"])
+                  return subprocess.CompletedProcess(command, 0, b"synthetic-retry-credential\\n", b"")
+              assert client.read_ai_center_keychain_token(security_binary=helper, run=stalled_once) == "synthetic-retry-credential"
+              assert calls == [2.0, 2.0], calls
         PYTHON
       end
       if version >= Version.new("0.1.48")
