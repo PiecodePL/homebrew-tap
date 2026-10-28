@@ -5,8 +5,8 @@ class CodexAiCenter < Formula
   homepage "https://chat.piecode.pl/console/codex-onboarding"
 
   on_arm do
-    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.46/codex_ai_center_client-0.1.46-py3-none-any.whl"
-    sha256 "ae9ff379db804ed19ec9c23b52d5abfa0882bf3bf47097abc0bd70ee477cb118"
+    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.47/codex_ai_center_client-0.1.47-py3-none-any.whl"
+    sha256 "d96fed278ce874f067ad086d53defd774f0e06395015d91481271d887d4b8a30"
   end
 
   depends_on "python@3.14"
@@ -301,6 +301,13 @@ class CodexAiCenter < Formula
               assert client._saved_codex_resume_model(home, pinned) == "gpt-6-astra"
               unchanged = ["resume", "--last", "--all", "--cd", str(project)]
               assert client._pin_codex_resume_last(home, unchanged) == unchanged
+        PYTHON
+      end
+      if version >= Version.new("0.1.47")
+        system libexec/"bin/python", "-I", "-c", <<~PYTHON
+          from ai_center.runtime.codex_native_model import native_claude_descriptor
+          text = native_claude_descriptor("claude-opus-5-5", "Claude")["base_instructions"]
+          assert "codex-ai-center exec" in text and "worktree" in text, text
         PYTHON
       end
       if version >= Version.new("0.1.46")
