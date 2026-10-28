@@ -5,8 +5,8 @@ class CodexAiCenter < Formula
   homepage "https://chat.piecode.pl/console/codex-onboarding"
 
   on_arm do
-    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.45/codex_ai_center_client-0.1.45-py3-none-any.whl"
-    sha256 "68dd593909d2fbf2ce77643767b40bd5271f3a428350793ec4c3d88953beb503"
+    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.46/codex_ai_center_client-0.1.46-py3-none-any.whl"
+    sha256 "ae9ff379db804ed19ec9c23b52d5abfa0882bf3bf47097abc0bd70ee477cb118"
   end
 
   depends_on "python@3.14"
@@ -301,6 +301,26 @@ class CodexAiCenter < Formula
               assert client._saved_codex_resume_model(home, pinned) == "gpt-6-astra"
               unchanged = ["resume", "--last", "--all", "--cd", str(project)]
               assert client._pin_codex_resume_last(home, unchanged) == unchanged
+        PYTHON
+      end
+      if version >= Version.new("0.1.46")
+        system libexec/"bin/python", "-I", "-c", <<~PYTHON
+          import tempfile
+          from pathlib import Path
+          from ai_center.runtime import codex_transparent_client as client
+          with tempfile.TemporaryDirectory() as root:
+              prefix = Path(root).resolve()
+              helper = prefix / "Cellar/codex-ai-center/9.9.9/libexec/bin/ai-center-token"
+              helper.parent.mkdir(parents=True)
+              helper.write_text("")
+              (prefix / "opt").mkdir()
+              (prefix / "opt/codex-ai-center").symlink_to(prefix / "Cellar/codex-ai-center/9.9.9")
+              stable = prefix / "opt/codex-ai-center/libexec/bin/ai-center-token"
+              assert client._stable_homebrew_path(helper) == stable
+              other = prefix / "Cellar/codex-ai-center/9.9.8/libexec/bin/ai-center-token"
+              other.parent.mkdir(parents=True)
+              other.write_text("")
+              assert client._stable_homebrew_path(other) == other
         PYTHON
       end
       assert_match "--credential-env", shell_output("#{bin}/codex-ai-center service --help")
