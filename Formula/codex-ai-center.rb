@@ -5,8 +5,8 @@ class CodexAiCenter < Formula
   homepage "https://chat.piecode.pl/console/codex-onboarding"
 
   on_arm do
-    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.47/codex_ai_center_client-0.1.47-py3-none-any.whl"
-    sha256 "d96fed278ce874f067ad086d53defd774f0e06395015d91481271d887d4b8a30"
+    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.48/codex_ai_center_client-0.1.48-py3-none-any.whl"
+    sha256 "6935f1ba80d5735fffdd8cc5813f3396789e7d707bec6f1b47867033dfc24825"
   end
 
   depends_on "python@3.14"
@@ -303,11 +303,13 @@ class CodexAiCenter < Formula
               assert client._pin_codex_resume_last(home, unchanged) == unchanged
         PYTHON
       end
-      if version >= Version.new("0.1.47")
+      if version >= Version.new("0.1.48")
         system libexec/"bin/python", "-I", "-c", <<~PYTHON
-          from ai_center.runtime.codex_native_model import native_claude_descriptor
-          text = native_claude_descriptor("claude-opus-5-5", "Claude")["base_instructions"]
-          assert "codex-ai-center exec" in text and "worktree" in text, text
+          from ai_center.runtime.codex_native_model import NATIVE_CLAUDE_CAPABILITY_OVERRIDES, native_claude_descriptor
+          descriptor = native_claude_descriptor("claude-opus-5-5", "Claude")
+          assert "spawn_agent" in descriptor["base_instructions"], descriptor["base_instructions"]
+          assert descriptor["multi_agent_version"] == "v1"
+          assert "features.multi_agent=true" in NATIVE_CLAUDE_CAPABILITY_OVERRIDES
         PYTHON
       end
       if version >= Version.new("0.1.46")
