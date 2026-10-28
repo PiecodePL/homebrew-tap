@@ -5,8 +5,8 @@ class CodexAiCenter < Formula
   homepage "https://chat.piecode.pl/console/codex-onboarding"
 
   on_arm do
-    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.44/codex_ai_center_client-0.1.44-py3-none-any.whl"
-    sha256 "308d97e29fe7993e9fe3263afe46d098747e8e07c112f5c9b983290b8c185768"
+    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.45/codex_ai_center_client-0.1.45-py3-none-any.whl"
+    sha256 "68dd593909d2fbf2ce77643767b40bd5271f3a428350793ec4c3d88953beb503"
   end
 
   depends_on "python@3.14"
@@ -275,6 +275,32 @@ class CodexAiCenter < Formula
                       lock_root=Path(root), max_lifetime_seconds=120, retry_jitter_ratio=0)
               assert outcome == "terminal" and len(calls) == 4
               assert clock[0] == 61.0
+        PYTHON
+      end
+      if version >= Version.new("0.1.45")
+        system libexec/"bin/python", "-I", "-c", <<~PYTHON
+          import os, sqlite3, tempfile
+          from pathlib import Path
+          from ai_center.runtime import codex_transparent_client as client
+          thread = "01a1031d-60ce-7152-95c3-dd9d2bf2644c"
+          foreign = "01a1031d-60ce-7152-95c3-dd9d2bf26451"
+          with tempfile.TemporaryDirectory() as root:
+              home, project = Path(root, "home"), Path(root, "project")
+              home.mkdir(mode=0o700)
+              project.mkdir()
+              database = home / "state_5.sqlite"
+              with sqlite3.connect(database) as connection:
+                  connection.execute("CREATE TABLE threads (id TEXT PRIMARY KEY, model_provider TEXT, model TEXT, "
+                                     "archived INTEGER, cwd TEXT, updated_at INTEGER)")
+                  connection.executemany("INSERT INTO threads VALUES (?, ?, ?, ?, ?, ?)", [
+                      (thread, "ai_center", "gpt-6-astra", 0, str(project.resolve()), 1),
+                      (foreign, "openai", "gpt-6-astra", 0, str(project.resolve()), 2)])
+              database.chmod(0o600)
+              pinned = client._pin_codex_resume_last(home, ["resume", "--last", "--cd", str(project)])
+              assert pinned == ["resume", thread, "--cd", str(project)], pinned
+              assert client._saved_codex_resume_model(home, pinned) == "gpt-6-astra"
+              unchanged = ["resume", "--last", "--all", "--cd", str(project)]
+              assert client._pin_codex_resume_last(home, unchanged) == unchanged
         PYTHON
       end
       assert_match "--credential-env", shell_output("#{bin}/codex-ai-center service --help")
