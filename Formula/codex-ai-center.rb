@@ -5,8 +5,8 @@ class CodexAiCenter < Formula
   homepage "https://chat.piecode.pl/console/codex-onboarding"
 
   on_arm do
-    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.51/codex_ai_center_client-0.1.51-py3-none-any.whl"
-    sha256 "cf2d783bbdfaae295cb84645147c7bb3ddd6ee90c1b57f9f498e5d25c7cc7952"
+    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.52/codex_ai_center_client-0.1.52-py3-none-any.whl"
+    sha256 "6807b01206a806d826ba302557771f5d29c707c39c6a4892b06fa5c8fec906e1"
   end
 
   depends_on "python@3.14"
@@ -176,6 +176,9 @@ class CodexAiCenter < Formula
       if version >= Version.new("0.1.51")
         assert_match "--attach", shell_output("#{bin}/codex-ai-center remote start --help")
         assert_match "--host", shell_output("#{bin}/codex-ai-center remote list --help")
+      end
+      if version >= Version.new("0.1.52")
+        assert_match "install", shell_output("#{bin}/codex-ai-center remote host --help")
       end
       if version >= Version.new("0.1.40")
         system libexec/"bin/python", "-I", "-c", <<~PYTHON
