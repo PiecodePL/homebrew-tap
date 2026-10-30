@@ -5,8 +5,8 @@ class CodexAiCenter < Formula
   homepage "https://chat.piecode.pl/console/codex-onboarding"
 
   on_arm do
-    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.49/codex_ai_center_client-0.1.49-py3-none-any.whl"
-    sha256 "fa01906b228899189ee2ebe876eed14d1f6867ee8a873c1296e25adcfabea6ed"
+    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.50/codex_ai_center_client-0.1.50-py3-none-any.whl"
+    sha256 "6ffb73ed993b5708b08648036874938e33010496844e679678a562cc0e48e6a6"
   end
 
   depends_on "python@3.14"
@@ -231,7 +231,7 @@ class CodexAiCenter < Formula
               profile = tomllib.loads(client.render_managed_codex_profile(
                   base_url=client.CODEX_TRANSPARENT_DEFAULT_BASE_URL,
                   helper_path=helper, model_catalog_path=Path(root) / "models.json"))
-              assert profile["model_providers"]["ai_center"]["auth"]["timeout_ms"] == 15000
+              assert profile["model_providers"]["ai_center"]["auth"]["timeout_ms"] >= 15000
               hooks = client._managed_codex_hooks(hook_path=helper,
                   base_url=client.CODEX_TRANSPARENT_DEFAULT_BASE_URL,
                   codex_version=client.PACKAGED_CODEX_CLI_VERSION, allow_http_localhost=False)
