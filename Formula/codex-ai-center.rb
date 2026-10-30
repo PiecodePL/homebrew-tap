@@ -5,8 +5,8 @@ class CodexAiCenter < Formula
   homepage "https://chat.piecode.pl/console/codex-onboarding"
 
   on_arm do
-    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.50/codex_ai_center_client-0.1.50-py3-none-any.whl"
-    sha256 "6ffb73ed993b5708b08648036874938e33010496844e679678a562cc0e48e6a6"
+    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.51/codex_ai_center_client-0.1.51-py3-none-any.whl"
+    sha256 "cf2d783bbdfaae295cb84645147c7bb3ddd6ee90c1b57f9f498e5d25c7cc7952"
   end
 
   depends_on "python@3.14"
@@ -150,6 +150,11 @@ class CodexAiCenter < Formula
 
       This preserves a backup and links known legacy launchers to the stable
       Homebrew path. Custom scripts, sessions and credentials are not modified.
+
+      On macOS 14 Homebrew builds python@3.14 from source, which can fail.
+      With a working python@3.14 already installed, unpin it and run:
+
+        brew install --ignore-dependencies piecodepl/tap/codex-ai-center
     EOS
   end
 
@@ -167,6 +172,10 @@ class CodexAiCenter < Formula
         assert_equal 1, runtime.fetch("remote_protocol")
         assert_match "attach", shell_output("#{bin}/codex-ai-center remote --help")
         assert_match "--host-state-root", shell_output("#{bin}/codex-ai-center remote attach --help")
+      end
+      if version >= Version.new("0.1.51")
+        assert_match "--attach", shell_output("#{bin}/codex-ai-center remote start --help")
+        assert_match "--host", shell_output("#{bin}/codex-ai-center remote list --help")
       end
       if version >= Version.new("0.1.40")
         system libexec/"bin/python", "-I", "-c", <<~PYTHON
