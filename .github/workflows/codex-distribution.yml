@@ -35,7 +35,7 @@ jobs:
           cp Formula/codex-ai-center.rb "$tap/Formula/codex-ai-center.rb"
           brew trust --formula piecode/distribution-validation/codex-ai-center
           expected=0.1.36
-          if [ "$(uname -m)" = arm64 ]; then expected=0.1.54; fi
+          if [ "$(uname -m)" = arm64 ]; then expected=0.1.55; fi
           brew info --json=v2 piecode/distribution-validation/codex-ai-center | jq -e --arg version "$expected" '.formulae[0].versions.stable == $version'
           brew install --build-from-source piecode/distribution-validation/codex-ai-center
       - name: Test installed formula
