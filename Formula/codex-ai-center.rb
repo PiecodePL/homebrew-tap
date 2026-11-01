@@ -5,8 +5,9 @@ class CodexAiCenter < Formula
   homepage "https://chat.piecode.pl/console/codex-onboarding"
 
   on_arm do
-    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.61/codex_ai_center_client-0.1.61-py3-none-any.whl"
-    sha256 "6a15b802e406804088842ee6d3d1f0a4c0f2b6951b878bc7d1b80e1c296a3d58"
+    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.63/codex_ai_center_client-0.1.63-py3-none-any.whl"
+    sha256 "a23aad4e5ff4fe79f6a2cf88ca51425198003cf0624345687fdcaa6f9d9b0bd3"
+    depends_on "tmux"
   end
 
   depends_on "python@3.14"
@@ -176,6 +177,10 @@ class CodexAiCenter < Formula
       if version >= Version.new("0.1.51")
         assert_match "--attach", shell_output("#{bin}/codex-ai-center remote start --help")
         assert_match "--host", shell_output("#{bin}/codex-ai-center remote list --help")
+      end
+      if version >= Version.new("0.1.62")
+        assert_match "--no-reconnect", shell_output("#{bin}/codex-ai-center remote attach --help")
+        assert_path_exists Formula["tmux"].opt_bin/"tmux"
       end
       if version >= Version.new("0.1.52")
         assert_match "install", shell_output("#{bin}/codex-ai-center remote host --help")
