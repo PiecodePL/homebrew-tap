@@ -161,7 +161,8 @@ class CodexAiCenter < Formula
 
   test do
     assert_equal "codex-ai-center #{version}\n", shell_output("#{bin}/codex-ai-center --version")
-    assert_equal "codex-cli 0.159.3\n", shell_output("#{bin}/codex-ai-center-stock --version")
+    stock_version = Hardware::CPU.arm? ? "0.172.0" : "0.159.3"
+    assert_equal "codex-cli #{stock_version}\n", shell_output("#{bin}/codex-ai-center-stock --version")
     assert_path_exists libexec/"bin/codex-ai-center-stock"
     if version >= Version.new("0.1.37")
       require "json"
