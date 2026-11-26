@@ -5,8 +5,8 @@ class CodexAiCenter < Formula
   homepage "https://chat.piecode.pl/console/codex-onboarding"
 
   on_arm do
-    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.73/codex_ai_center_client-0.1.73-py3-none-any.whl"
-    sha256 "ba24d941986c776c0aa1eadeebef2b535cd784530223bdab2baa79863227a109"
+    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.74/codex_ai_center_client-0.1.74-py3-none-any.whl"
+    sha256 "ac4659489717c0762677175def64d9f10649ef6dbd0bc6771c79b06ede2c71ee"
     depends_on "tmux"
   end
 
@@ -164,6 +164,17 @@ class CodexAiCenter < Formula
     stock_version = Hardware::CPU.arm? ? "0.172.0" : "0.159.3"
     assert_equal "codex-cli #{stock_version}\n", shell_output("#{bin}/codex-ai-center-stock --version")
     assert_path_exists libexec/"bin/codex-ai-center-stock"
+    if version >= Version.new("0.1.74")
+      system libexec/"bin/python", "-I", "-c", <<~PYTHON
+        import tomllib
+        from ai_center.runtime import codex_transparent_client as c
+        profile = tomllib.loads(c.render_managed_codex_profile(
+            base_url=c.CODEX_TRANSPARENT_DEFAULT_BASE_URL,
+            helper_path="/tmp/synthetic-helper", model_catalog_path="/tmp/synthetic-catalog",
+            codex_version=c.PACKAGED_CODEX_CLI_VERSION))
+        assert profile["features"]["instant_interrupt"] is False
+      PYTHON
+    end
     if version >= Version.new("0.1.37")
       require "json"
       runtime = JSON.parse(shell_output("#{bin}/codex-ai-center runtime --json"))
