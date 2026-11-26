@@ -5,8 +5,8 @@ class CodexAiCenter < Formula
   homepage "https://chat.piecode.pl/console/codex-onboarding"
 
   on_arm do
-    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.69/codex_ai_center_client-0.1.69-py3-none-any.whl"
-    sha256 "e732530621ed651628a9e49ea7c5f4d294c8db13b04c9628d81922bb730cf6bf"
+    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.73/codex_ai_center_client-0.1.73-py3-none-any.whl"
+    sha256 "ba24d941986c776c0aa1eadeebef2b535cd784530223bdab2baa79863227a109"
     depends_on "tmux"
   end
 
@@ -23,8 +23,8 @@ class CodexAiCenter < Formula
 
   resource "stock-codex" do
     on_arm do
-      url "https://github.com/openai/codex/releases/download/rust-v0.159.3/codex-package-aarch64-apple-darwin.tar.gz"
-      sha256 "fad57a5681cabcef21d322af5aec938975cfb711b5f25d4ce4907e6561616d07"
+      url "https://github.com/openai/codex/releases/download/rust-v0.172.0/codex-package-aarch64-apple-darwin.tar.gz"
+      sha256 "0970016d48209a09c4039139629ed79b4a31c5e3d864e792c043419d98fa6466"
     end
 
     on_intel do

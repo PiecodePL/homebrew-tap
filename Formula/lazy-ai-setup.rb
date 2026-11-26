@@ -1,10 +1,10 @@
 class LazyAiSetup < Formula
   desc "Reversible LazyVim and AI-pane developer environment bootstrap"
   homepage "https://github.com/mateuszdargacz/lazy-ai-setup"
-  url "https://github.com/PiecodePL/homebrew-tap/releases/download/lazy-ai-setup-v0.0.16/lazy-ai-setup-v0.0.16.tar.gz"
-  sha256 "d087f07a5230ada320b32acefc887d6b8d28655d30d892de71f974069b73f785"
+  url "https://github.com/PiecodePL/homebrew-tap/releases/download/lazy-ai-setup-v0.0.17/lazy-ai-setup-v0.0.17.tar.gz"
+  sha256 "f5a23159aea2da958fa962a66f4d40ce28070030692a7b76299b85903fc67b02"
   license "MIT"
-  # Rendered release tag: v0.0.16
+  # Rendered release tag: v0.0.17
 
   depends_on "python@3.14"
   depends_on "codex-ai-center"
@@ -16,7 +16,7 @@ class LazyAiSetup < Formula
     (bin/"lazy-ai-setup").write <<~EOS
       #!/bin/bash
       export LAZY_AI_SETUP_REPO="#{libexec}"
-      export LAZY_AI_SETUP_VERSION="v0.0.16"
+      export LAZY_AI_SETUP_VERSION="v0.0.17"
       export PYTHON_BIN="#{python}"
       exec "#{libexec}/bootstrap.sh" "$@"
     EOS
@@ -25,7 +25,7 @@ class LazyAiSetup < Formula
     (bin/"lazy-ai-dev").write <<~EOS
       #!/bin/bash
       export LAZY_AI_SETUP_REPO="#{libexec}"
-      export LAZY_AI_SETUP_VERSION="v0.0.16"
+      export LAZY_AI_SETUP_VERSION="v0.0.17"
       export PYTHON_BIN="#{python}"
       exec "#{libexec}/bin/dev" "$@"
     EOS
