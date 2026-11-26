@@ -190,8 +190,8 @@ class CodexAiCenter < Formula
         system libexec/"bin/python", "-I", "-c", <<~PYTHON
           from ai_center.runtime.codex_native_model import native_claude_descriptor
           model = native_claude_descriptor("claude-opus-5-5", "Opus")
-          assert model["context_window"] == model["max_context_window"] == 200000
-          assert model["auto_compact_token_limit"] == 160000
+          assert model["context_window"] == model["max_context_window"] == 150000
+          assert model["auto_compact_token_limit"] == 120000
         PYTHON
       end
       if version >= Version.new("0.1.41")
