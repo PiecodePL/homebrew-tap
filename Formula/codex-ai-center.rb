@@ -5,8 +5,8 @@ class CodexAiCenter < Formula
   homepage "https://chat.piecode.pl/console/codex-onboarding"
 
   on_arm do
-    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.79/codex_ai_center_client-0.1.79-py3-none-any.whl"
-    sha256 "e1b0b240cc9e784be5a01579f7acc5db2d5d16004f0cbd24a45663976297360d"
+    url "https://github.com/PiecodePL/homebrew-tap/releases/download/codex-ai-center-v0.1.80/codex_ai_center_client-0.1.80-py3-none-any.whl"
+    sha256 "6a88e69fd4eb313d5eb97bf46932d153f6208320104d2fd3f2984e19deee1455"
     depends_on "tmux"
   end
 
